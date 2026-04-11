@@ -1,57 +1,103 @@
-# RememberMe MCP Server
+# RememberMe - CLI + MCP Server
 
-An MCP server providing long-term memory management for Claude Code and other MCP clients. Built on Qdrant vector database, supporting semantic search and memory updates.
+A dual-mode tool providing long-term memory management for Claude Code and other MCP clients. Features both a CLI interface for direct commands and an MCP server for programmatic access.
+
+Built on Qdrant vector database with semantic search and user/session isolation.
 
 ## Features
 
+- **Dual-Mode**: CLI commands + MCP server integration
 - **Semantic Search** - Natural language queries using vector similarity
 - **Multi-User Support** - User memory isolation via `userId`
 - **Session Tracking** - Associate memories with specific agent sessions via `runId`
 - **Content Deduplication** - MD5 hash to detect duplicate memories
 - **Auto-Vectorization** - OpenAI-compatible embedding service integration
 
-## Architecture
+## Quick Start
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Claude Code   │────▶│   Qdrant MCP    │────▶│   Qdrant DB     │
-│   (MCP Client) │     │     Server      │     │                 │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+```bash
+# Install
+pip install -e .
+
+# CLI usage
+rememberme add "User prefers dark mode"
+rememberme search "preferences" --limit 5
+rememberme status
+
+# MCP mode (for Claude Code)
+python -m rememberme
 ```
 
 ## Installation
 
 ```bash
-cd src/rememberme
 pip install -e .
 ```
 
-## Configuration
+This installs the `rememberme` command globally.
 
-Copy `.env.example` to `.env` and configure:
+## CLI Commands
 
 ```bash
-cp .env.example .env
+# Add a new memory
+rememberme add "User prefers dark mode"
+
+# Search memories
+rememberme search "user preferences"
+rememberme search "project decisions" --limit 10
+
+# Check status
+rememberme status
+
+# Delete a memory
+rememberme delete <memory_id>
+
+# Delete all memories
+rememberme delete-all --force
+
+# JSON output (for programmatic use)
+rememberme add "text" --json
+rememberme search "query" --json
 ```
 
-### Environment Variables
+### CLI Options
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `QDRANT_HOST` | Qdrant server address | `<HOST>` (e.g. `localhost`) |
-| `QDRANT_PORT` | Qdrant port | `<PORT>` (e.g. `6333`) |
-| `QDRANT_COLLECTION_NAME` | Collection name | `memories` |
-| `QDRANT_API_KEY` | Qdrant API key | - |
-| `EMBEDDING_API_KEY` | Embedding API key | **Required** |
-| `EMBEDDING_MODEL` | Embedding model (OpenAI compatible) | `<EMBEDDING_MODEL>` (e.g. `doubao-embedding-vision`) |
-| `EMBEDDING_DIMENSIONS` | Vector dimensions | `<EMBEDDING_DIMENSIONS>` (e.g. `2048`) |
-| `OPENAI_BASE_URL` | Embedding API endpoint | `<OPENAI_BASE_URL>` (e.g. `https://ark.cn-beijing.volces.com/api/coding/v3`) |
-| `DEFAULT_USER_ID` | Default user ID | `<DEFAULT_USER_ID>` (e.g. `user_peanut`) |
-| `LOG_LEVEL` | Log level | `INFO` |
+| Option | Description |
+|--------|-------------|
+| `--user-id` | User ID scope (defaults to DEFAULT_USER_ID env var) |
+| `--debug` | Enable debug logging |
 
-> **Placeholder Note**: `<PLACEHOLDER>` format indicates customizable parameters. Replace with actual values during deployment.
+## Architecture
 
-## Claude Code Integration
+```
+                    Dual-Mode Entry
+                  ┌─────────────────┐
+                  │  __main__.py    │
+                  │  auto-detects   │
+                  └────────┬────────┘
+                           │
+          ┌────────────────┼────────────────┐
+          │                                 │
+          ▼                                 ▼
+    ┌───────────┐                    ┌─────────────┐
+    │  CLI Mode │                    │ MCP Mode    │
+    │  (Click)  │                    │ (stdio)     │
+    └─────┬─────┘                    └──────┬──────┘
+          │                                 │
+          ▼                                 │
+    MemoryManager                           │
+    (core/memory_manager.py)                │
+          │                                 │
+          └────────────────┼────────────────┘
+                           │
+                           ▼
+              ┌─────────────────────────┐
+              │     MemoryStore         │
+              │   (Qdrant operations)   │
+              └─────────────────────────┘
+```
+
+## MCP Server Integration
 
 ### Method 1: Using claude code command
 
@@ -87,19 +133,8 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-### Verify Connection
+### Available MCP Tools
 
-After configuration, run in Claude Code:
-
-```
-/mcp list
-```
-
-You should see `rememberme` server enabled.
-
-### Available Tools
-
-Once enabled, Claude Code can directly use these memory management tools:
 - `add_memory` - Add a memory
 - `search_memories` - Semantic search
 - `get_memory` - Get a single memory
@@ -107,78 +142,28 @@ Once enabled, Claude Code can directly use these memory management tools:
 - `delete_memory` - Delete a memory
 - `delete_all_memories` - Clear all memories
 
-### Start Server
+## Configuration
+
+Copy `.env.example` to `.env` and configure:
 
 ```bash
-python -m rememberme
+cp .env.example .env
 ```
 
-### MCP Tools
+### Environment Variables
 
-#### add_memory
-
-Add a new memory.
-
-```json
-{
-  "text": "User prefers Go language for backend development",
-  "user_id": "<USER_ID>",
-  "agent_id": "agent:main:<UUID>"
-}
-```
-
-#### search_memories
-
-Semantic memory search.
-
-```json
-{
-  "query": "What programming language does the user prefer",
-  "user_id": "<USER_ID>",
-  "limit": 5
-}
-```
-
-#### get_memory
-
-Get a memory by ID.
-
-```json
-{
-  "id": "<MEMORY_UUID>"
-}
-```
-
-#### update_memory
-
-Update memory content.
-
-```json
-{
-  "id": "<MEMORY_UUID>",
-  "text": "Updated content"
-}
-```
-
-#### delete_memory
-
-Delete a specific memory.
-
-```json
-{
-  "id": "<MEMORY_UUID>"
-}
-```
-
-#### delete_all_memories
-
-Delete all memories for a user.
-
-```json
-{
-  "user_id": "<USER_ID>"
-}
-```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `QDRANT_HOST` | Qdrant server address | `localhost` |
+| `QDRANT_PORT` | Qdrant port | `6333` |
+| `QDRANT_COLLECTION_NAME` | Collection name | `memories` |
+| `QDRANT_API_KEY` | Qdrant API key | - |
+| `EMBEDDING_API_KEY` | Embedding API key | **Required** |
+| `EMBEDDING_MODEL` | Embedding model (OpenAI compatible) | `doubao-embedding-vision` |
+| `EMBEDDING_DIMENSIONS` | Vector dimensions | `2048` |
+| `OPENAI_BASE_URL` | Embedding API endpoint | Required |
+| `DEFAULT_USER_ID` | Default user ID | `user_default` |
+| `LOG_LEVEL` | Log level | `INFO` |
 
 ## Data Format
 
@@ -194,32 +179,48 @@ Payload structure stored in Qdrant:
 }
 ```
 
-## Run Tests
-
-```bash
-cd tests
-pip install pytest pytest-asyncio
-pytest
-```
-
 ## Project Structure
 
 ```
 src/rememberme/
-├── __init__.py          # Package init
-├── __main__.py          # MCP server entry
+├── __main__.py          # Dual-mode entry (CLI + MCP auto-detect)
 ├── config.py            # Configuration management
 ├── models.py            # Data models
 ├── embeddings.py        # Embedding service
 ├── memory_store.py      # Qdrant operations
-├── pyproject.toml       # Dependencies
-└── .env.example         # Environment template
+│
+├── core/                # Core business logic
+│   ├── __init__.py
+│   ├── exceptions.py    # Custom exceptions
+│   └── memory_manager.py
+│
+├── cli/                 # CLI interface
+│   ├── __init__.py
+│   ├── commands.py      # Click commands
+│   ├── formatter.py    # Output formatters
+│   └── lazy.py          # Lazy imports
+│
+├── mcp/                 # MCP adapter
+│   ├── __init__.py
+│   └── adapter.py       # MCP server
+│
+└── skill/               # OpenClaw skill
+    └── manage_personal_memory.py
+
+skills/                   # OpenClaw skills (distributed separately)
+└── using-rememberme-cli/
+    └── SKILL.md
 
 tests/
-├── __init__.py
-├── test_models.py       # Data model tests
-├── test_config.py       # Configuration tests
-└── test_embeddings.py  # Embedding service tests
+├── test_models.py
+├── test_config.py
+└── test_embeddings.py
+```
+
+## Run Tests
+
+```bash
+pytest tests/
 ```
 
 ## License

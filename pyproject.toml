@@ -1,7 +1,7 @@
 [project]
 name = "rememberme-mcp"
-version = "0.1.0"
-description = "MCP Server for long-term memory management with Qdrant"
+version = "0.2.0"
+description = "CLI + MCP Server for long-term memory management with Qdrant"
 requires-python = ">=3.10"
 dependencies = [
     "mcp>=1.6.0",
@@ -9,7 +9,11 @@ dependencies = [
     "httpx",
     "pydantic>=2.0",
     "python-dotenv",
+    "click>=8.0",
 ]
+
+[project.scripts]
+rememberme = "rememberme.__main__:main"
 
 [project.optional-dependencies]
 dev = [
