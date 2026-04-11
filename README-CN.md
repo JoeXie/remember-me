@@ -30,11 +30,110 @@ python -m rememberme
 
 ## 安装
 
+本指南从下载代码仓库开始，指导您完成 RememberMe 的完整安装和配置。
+
+### 前置要求
+
+- **Python 3.10+**
+- **Qdrant**（向量数据库）- [通过 Docker 安装](https://qdrant.tech/documentation/guides/)
+- **嵌入 API**（OpenAI 兼容）- 如 Doubao、OpenAI、LocalAI
+
+### 步骤 1: 克隆仓库
+
+```bash
+git clone https://github.com/JoeXie/remember-me.git
+cd remember-me
+```
+
+或从 GitHub 下载并解压压缩包。
+
+### 步骤 2: 安装依赖
+
 ```bash
 pip install -e .
 ```
 
-这将安装 `rememberme` 全局命令。
+这将以开发模式安装 RememberMe 并创建 `rememberme` 命令。
+
+### 步骤 3: 配置环境变量
+
+复制环境变量示例文件并编辑：
+
+```bash
+cp .env.example .env
+```
+
+编辑 `.env` 配置您的凭据：
+
+```bash
+# 必需：嵌入 API 凭据
+EMBEDDING_API_KEY=your_api_key_here
+OPENAI_BASE_URL=https://ark.cn-beijing.volces.com/api/coding/v3
+
+# 必需：嵌入模型配置
+EMBEDDING_MODEL=doubao-embedding-vision
+EMBEDDING_DIMENSIONS=2048
+
+# 可选：Qdrant 连接（默认配置如下）
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+QDRANT_COLLECTION_NAME=memories
+
+# 可选：默认用户 ID
+DEFAULT_USER_ID=user_default
+```
+
+### 步骤 4: 启动 Qdrant
+
+确保 Qdrant 正在运行：
+
+```bash
+# 使用 Docker
+docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+
+# 或使用 Podman
+podman run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+```
+
+### 步骤 5: 验证安装
+
+检查连接状态：
+
+```bash
+rememberme status
+```
+
+预期输出：
+```
+## RememberMe 状态
+
+- **Qdrant**: `已连接`
+  - 主机: `localhost:6333`
+  - 集合: `memories`
+- **记忆数量**: `0` 条
+```
+
+### 步骤 6: 执行第一条命令
+
+```bash
+# 添加一条记忆
+rememberme add "用户偏好深色主题"
+
+# 搜索记忆
+rememberme search "偏好"
+
+# 查看帮助
+rememberme --help
+```
+
+### 常见问题
+
+| 问题 | 解决方案 |
+|------|----------|
+| `QdrantOfflineError` | 确保 Qdrant 正在运行（`docker run -p 6333:6333 qdrant/qdrant`） |
+| `ValidationError` | 检查 `.env` 中的 `EMBEDDING_API_KEY` 和 `OPENAI_BASE_URL` |
+| 命令未找到 | 重新运行 `pip install -e .` 创建 `rememberme` 命令 |
+| 集合错误 | RememberMe 会在首次运行时自动创建集合 |
 
 ## CLI 命令
 

@@ -30,11 +30,110 @@ python -m rememberme
 
 ## Installation
 
+This guide walks you through setting up RememberMe from downloading the repository to your first command.
+
+### Prerequisites
+
+- **Python 3.10+**
+- **Qdrant** (vector database) - [Install via Docker](https://qdrant.tech/documentation/guides/)
+- **Embedding API** (OpenAI-compatible) - e.g., Doubao, OpenAI, LocalAI
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/JoeXie/remember-me.git
+cd remember-me
+```
+
+Or download and extract the archive from GitHub.
+
+### Step 2: Install Dependencies
+
 ```bash
 pip install -e .
 ```
 
-This installs the `rememberme` command globally.
+This installs RememberMe in development mode and creates the `rememberme` command.
+
+### Step 3: Configure Environment
+
+Copy the example env file and edit with your credentials:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your settings:
+
+```bash
+# Required: Your embedding API credentials
+EMBEDDING_API_KEY=your_api_key_here
+OPENAI_BASE_URL=https://ark.cn-beijing.volces.com/api/coding/v3
+
+# Required: Embedding model configuration
+EMBEDDING_MODEL=doubao-embedding-vision
+EMBEDDING_DIMENSIONS=2048
+
+# Optional: Qdrant connection (defaults shown)
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+QDRANT_COLLECTION_NAME=memories
+
+# Optional: Default user ID
+DEFAULT_USER_ID=user_default
+```
+
+### Step 4: Start Qdrant
+
+Make sure Qdrant is running:
+
+```bash
+# Using Docker
+docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+
+# Or using Podman
+podman run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+```
+
+### Step 5: Verify Installation
+
+Check that everything is connected:
+
+```bash
+rememberme status
+```
+
+Expected output:
+```
+## RememberMe Status
+
+- **Qdrant**: `Connected`
+  - Host: `localhost:6333`
+  - Collection: `memories`
+- **Memories**: `0` stored
+```
+
+### Step 6: Try Your First Command
+
+```bash
+# Add a memory
+rememberme add "User prefers dark mode theme"
+
+# Search memories
+rememberme search "preferences"
+
+# Get help
+rememberme --help
+```
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `QdrantOfflineError` | Ensure Qdrant is running (`docker run -p 6333:6333 qdrant/qdrant`) |
+| `ValidationError` | Check `EMBEDDING_API_KEY` and `OPENAI_BASE_URL` in `.env` |
+| Command not found | Re-run `pip install -e .` to create the `rememberme` command |
+| Collection error | RememberMe auto-creates the collection on first run |
 
 ## CLI Commands
 
