@@ -29,75 +29,75 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="add_memory",
-            description="Add a new memory to the store",
+            description="""Save important information to long-term memory. SAVE: User stated preferences ('User prefers dark mode'), personal context ('User is learning Rust'), project patterns ('API endpoint at /api/v2'), agreed decisions ('Team decided to use PostgreSQL'). DEDUPLICATION: Search before adding if the info seems routine - avoid storing duplicate facts. Prefer UPDATING existing memories when finding conflicting info. Store each distinct piece as a separate memory with clear, searchable text.""",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "text": {"type": "string", "description": "Memory content text"},
-                    "user_id": {"type": "string", "description": "User identifier"},
-                    "agent_id": {"type": "string", "description": "Agent/Run identifier"},
-                    "metadata": {"type": "object", "description": "Additional metadata"},
+                    "text": {"type": "string", "description": "Memory content - write clear, searchable statement (e.g., 'User prefers dark mode theme')."},
+                    "user_id": {"type": "string", "description": "User identifier (optional, uses default if not set)."},
+                    "agent_id": {"type": "string", "description": "Session/run identifier for grouping related memories."},
+                    "metadata": {"type": "object", "description": "Additional metadata (runId supported)."},
                 },
                 "required": ["text"],
             },
         ),
         Tool(
             name="search_memories",
-            description="Search memories by semantic similarity",
+            description="""Query stored memories to retrieve relevant context. TRIGGERS: When starting new tasks (check 'has user worked on this before?'), before giving advice on topics from past sessions, when user references something you don't recall, after any significant decision or preference is stated. PROACTIVE: Search for 'user preferences', 'project architecture', 'agreed approach' early in sessions. Use lower limits (1-3) for specific lookups, higher limits (5-10) for broad context.""",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Search query text"},
-                    "user_id": {"type": "string", "description": "User identifier"},
-                    "agent_id": {"type": "string", "description": "Agent/Run identifier"},
-                    "limit": {"type": "integer", "description": "Max results to return", "default": 5},
+                    "query": {"type": "string", "description": "Natural language search query (e.g., 'user coding preferences', 'database setup decisions')."},
+                    "user_id": {"type": "string", "description": "User identifier to scope search to specific user."},
+                    "agent_id": {"type": "string", "description": "Optional session filter to find memories from current run."},
+                    "limit": {"type": "integer", "description": "Max results (default: 5, increase for broader context).", "default": 5},
                 },
                 "required": ["query"],
             },
         ),
         Tool(
             name="get_memory",
-            description="Get a memory by its ID",
+            description="Retrieve a specific memory by its ID. Use when you have a memory ID from a previous operation (e.g., search result, or after adding a memory). Returns full memory details including metadata, timestamps, and the stored content.",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "id": {"type": "string", "description": "Memory ID"},
+                    "id": {"type": "string", "description": "The memory ID to retrieve."},
                 },
                 "required": ["id"],
             },
         ),
         Tool(
             name="update_memory",
-            description="Update an existing memory",
+            description="""Update an existing memory when information changes or needs correction. UPDATE when: same fact changes ('User now prefers light mode'), you get more precise info ('Project uses PostgreSQL 15, not 14'), or correcting an inaccuracy. ADD NEW for genuinely new topics. If unsure, prefer ADD - storing multiple perspectives is safer than losing context. The text field replaces content entirely; metadata (runId) preserves linkage.""",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "id": {"type": "string", "description": "Memory ID to update"},
-                    "text": {"type": "string", "description": "New memory content"},
-                    "metadata": {"type": "object", "description": "Metadata updates"},
+                    "id": {"type": "string", "description": "Memory ID to update (from get_memory or search results)."},
+                    "text": {"type": "string", "description": "Updated memory content - replaces previous text entirely."},
+                    "metadata": {"type": "object", "description": "Metadata updates (only runId supported for linkage to new sessions)."},
                 },
                 "required": ["id"],
             },
         ),
         Tool(
             name="delete_memory",
-            description="Delete a memory by ID",
+            description="Remove a specific memory when it is no longer relevant, was stored in error, or user requests deletion. CLEANUP: When updating and old version is redundant, when something shouldn't have been stored, when user asks to forget something. PRIVACY: Honor all deletion requests promptly.",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "id": {"type": "string", "description": "Memory ID to delete"},
+                    "id": {"type": "string", "description": "Memory ID to delete."},
                 },
                 "required": ["id"],
             },
         ),
         Tool(
             name="delete_all_memories",
-            description="Delete all memories for a user",
+            description="""Bulk delete all memories for a user, optionally filtered to a specific session. USE CASES: When user starts fresh on a project, complete privacy wipe requested, abandoned/debug session cleanup. CAUTION: Destructive and irreversible. Confirm with user if request seems broad. Without agent_id, deletes ALL user memories. With agent_id, deletes only that session's memories.""",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "user_id": {"type": "string", "description": "User identifier"},
-                    "agent_id": {"type": "string", "description": "Agent/Run identifier"},
+                    "user_id": {"type": "string", "description": "User identifier (optional, uses default if not set)."},
+                    "agent_id": {"type": "string", "description": "Optional: delete only memories from this specific session/run."},
                 },
             },
         ),
