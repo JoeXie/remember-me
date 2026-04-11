@@ -241,6 +241,21 @@ claude mcp add rememberme -- bash -c "cd /path/to/RememberMe && python -m rememb
 - `delete_memory` - 删除记忆
 - `delete_all_memories` - 清除所有记忆
 
+## OpenClaw Skill 集成
+
+对于 OpenClaw 代理，安装 RememberMe skill 以启用自动召回和自动存储：
+
+```bash
+# 从本地仓库安装 skill
+/skill install path/to/RememberMe/skills/using-rememberme-cli --always true
+```
+
+**重要提示：** 安装时请设置 `always: true`，以确保每次对话时都自动执行召回和存储。
+
+该 skill 提供：
+- **自动召回**：在响应前根据上下文自动搜索记忆
+- **自动存储**：在响应后评估并存储新事实
+
 ## 配置
 
 复制 `.env.example` 为 `.env` 并配置：

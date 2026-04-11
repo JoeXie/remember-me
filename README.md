@@ -241,6 +241,21 @@ Add to `~/.claude/settings.json`:
 - `delete_memory` - Delete a memory
 - `delete_all_memories` - Clear all memories
 
+## OpenClaw Skill Integration
+
+For OpenClaw agents, install the RememberMe skill to enable auto-recall and auto-storage:
+
+```bash
+# Install skill from local repository
+/skill install path/to/RememberMe/skills/using-rememberme-cli --always true
+```
+
+**Important:** When installing, set `always: true` to enable automatic pre-execution recall and post-response storage on every conversation.
+
+The skill provides:
+- **Auto-Recall**: Automatically searches memory before responding based on context
+- **Auto-Storage**: Evaluates and stores new facts after responding
+
 ## Configuration
 
 Copy `.env.example` to `.env` and configure:
