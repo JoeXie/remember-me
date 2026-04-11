@@ -15,6 +15,106 @@ RememberMe provides long-term memory management. Use the `rememberme` CLI to sto
 **SEARCH** before giving advice on topics user may have discussed before.
 **UPDATE** when same fact changes rather than creating duplicates.
 
+## Auto-Recall (Pre-Execution)
+
+Before responding, analyze the user's input context and search memory for relevant information. **Use judgment based on context, not rigid keyword matching.**
+
+### Decision Flow
+
+```
+User Input
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ Does this involve:                  │
+│ - User's skills/capabilities?       │
+│ - User's location/environment?      │
+│ - User's preferences/habits?       │
+│ - Project-specific context?         │
+│ - Past decisions or agreements?      │
+│ - User's background/experience?     │
+└──────────────┬──────────────────────┘
+               │
+      ┌────────┴────────┐
+      │                 │
+     Yes               No
+      │                 │
+      ▼                 ▼
+┌─────────────┐    Proceed
+│ Construct   │
+│ search query│
+│ from context│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────┐
+│ Inject results  │
+│ into response   │
+└─────────────────┘
+```
+
+### How to Construct Search Queries
+
+**Identify the core aspect** the user is asking about, then search with natural phrasing:
+
+| User Context | Search Query Examples |
+|--------------|----------------------|
+| Asking about skills | `"user programming language"`, `"user technical skills"`, `"user expertise"` |
+| Location-related | `"user city"`, `"user location"`, `"user timezone"` |
+| Project tech stack | `"user project framework"`, `"user project database"`, `"user project tech stack"` |
+| Preferences | `"user preference IDE"`, `"user preferred language"`, `"user coding preference"` |
+| Past decisions | `"user decision docker"`, `"user decision database"`, `"user project choice"` |
+| Work context | `"user job"`, `"user role"`, `"user team"` |
+| Habits | `"user习惯"`, `"user workflow"`, `"user typical approach"` |
+
+### Examples
+
+| User Says | Context Analysis | Auto-Recall Search |
+|-----------|-----------------|-------------------|
+| "用我最拿手的语言写代码" | Asks about user's best language | `rememberme search "user programming language skills"` |
+| "天气怎么样" | Asks about weather (implies location) | `rememberme search "user city location"` |
+| "我的项目用什么框架" | Asks about user's project framework | `rememberme search "user project framework"` |
+| "上次我们选型选了什么" | Asks about past decision | `rememberme search "user project technology choice"` |
+| "我之前遇到过什么问题" | Asks about user's past issues | `rememberme search "user problem history"` |
+| "我喜欢在咖啡馆工作" | Mentions personal habit → store it | First search if exists, then `rememberme add "user likes working from cafe"` |
+
+### Key Principle
+
+**Context-driven, not keyword-driven.** If the user's question implies knowing something *about the user*, search for it. The goal is to make responses personalized without the user explicitly saying "remember that...".
+
+## Post-Response Storage (Evaluation)
+
+After responding, evaluate if new facts should be stored.
+
+### When to Evaluate Storage
+
+- User provides **new information** about themselves
+- A **decision or agreement** was made
+- User **corrects** previous information
+- Project **technical choices** are confirmed
+- **Preferences** are explicitly stated
+
+### Evaluation Checklist
+
+```
+After each response, ask:
+├── Did user share personal context? (location, job, habits)
+├── Did we make a technical decision?
+├── Did user express a preference?
+├── Did user correct something?
+└── Is this worth remembering for future sessions?
+```
+
+### Storage Decision Rules
+
+| Condition | Action |
+|-----------|--------|
+| New fact, no prior memory | `rememberme add` |
+| Same topic exists | `rememberme update` or skip if redundant |
+| User corrected previous info | `rememberme update` |
+| Temporary/one-off context | Skip storage |
+| Sensitive personal data | Skip, suggest secure alternative |
+
 ## Commands
 
 ### add - Store New Memory
