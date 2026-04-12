@@ -27,7 +27,25 @@ def create_server() -> Server:
         return [
             Tool(
                 name="add_memory",
-                description="""Save important information to long-term memory. SAVE: User stated preferences ('User prefers dark mode'), personal context ('User is learning Rust'), project patterns ('API endpoint at /api/v2'), agreed decisions ('Team decided to use PostgreSQL'). DEDUPLICATION: Search before adding if the info seems routine - avoid storing duplicate facts. Prefer UPDATING existing memories when finding conflicting info. Store each distinct piece as a separate memory with clear, searchable text.""",
+                description="""Save important information to long-term memory.
+
+## When to Use
+- User stated preferences ('User prefers dark mode')
+- Personal context ('User is learning Rust', 'User works on payments team')
+- Project patterns ('API endpoint at /api/v2', 'Uses PostgreSQL for this project')
+- Agreed decisions ('Team decided to use Docker for deployment')
+- Constraints ('Budget is tight', 'Deadline is end of month')
+- Lessons learned ('Don't use library X, it caused issues')
+
+## Post-Response Storage Pattern (IMPORTANT)
+After responding to user, EVALUATE whether new facts should be stored:
+1. Did user share personal context? → Store it
+2. Did we make a technical decision? → Store it
+3. Did user express a preference? → Store it
+4. Did user correct previous information? → Update existing memory
+
+## Deduplication
+Search before adding if the info seems routine. Prefer UPDATING existing memories when finding conflicting info. Store each distinct piece as a separate memory with clear, searchable text.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -41,7 +59,26 @@ def create_server() -> Server:
             ),
             Tool(
                 name="search_memories",
-                description="""Query stored memories to retrieve relevant context. TRIGGERS: When starting new tasks (check 'has user worked on this before?'), before giving advice on topics from past sessions, when user references something you don't recall, after any significant decision or preference is stated. PROACTIVE: Search for 'user preferences', 'project architecture', 'agreed approach' early in sessions. Use lower limits (1-3) for specific lookups, higher limits (5-10) for broad context.""",
+                description="""Query stored memories to retrieve relevant context.
+
+## Pre-Execution Recall Pattern (IMPORTANT)
+BEFORE responding to user, search for relevant memories based on context:
+1. User asks about skills/capabilities? → Search 'user programming language', 'user technical skills'
+2. User mentions location/environment? → Search 'user city', 'user location', 'user timezone'
+3. User asks about preferences? → Search 'user preference', 'user coding preference'
+4. User references past decisions? → Search 'user decision', 'user project choice'
+5. User asks about project context? → Search 'user project framework', 'user project database'
+
+## Triggers
+- When starting new tasks (check 'has user worked on this before?')
+- Before giving advice on topics from past sessions
+- When user references something you don't recall
+- After any significant decision or preference is stated
+
+## Proactive Early Search
+At session start, consider searching 'user preferences', 'project architecture', 'agreed approach' to build context.
+
+Use lower limits (1-3) for specific lookups, higher limits (5-10) for broad context.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -55,7 +92,18 @@ def create_server() -> Server:
             ),
             Tool(
                 name="get_memory",
-                description="Retrieve a specific memory by its ID. Use when you have a memory ID from a previous operation (e.g., search result, or after adding a memory). Returns full memory details including metadata, timestamps, and the stored content.",
+                description="""Retrieve a specific memory by its ID.
+
+## When to Use
+- You have a memory ID from a previous search result
+- After adding a memory and need to verify or get full details
+- User asks for details about a specific memory they referenced
+- After update/delete operations to confirm results
+
+## Pre-Execution Recall
+Usually you'll use search_memories first to find relevant memories. Use get_memory when you already have an ID and need full details.
+
+Returns full memory details including metadata, timestamps, and the stored content.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -66,7 +114,26 @@ def create_server() -> Server:
             ),
             Tool(
                 name="update_memory",
-                description="""Update an existing memory when information changes or needs correction. UPDATE when: same fact changes ('User now prefers light mode'), you get more precise info ('Project uses PostgreSQL 15, not 14'), or correcting an inaccuracy. ADD NEW for genuinely new topics. If unsure, prefer ADD - storing multiple perspectives is safer than losing context. The text field replaces content entirely; metadata (runId) preserves linkage.""",
+                description="""Update an existing memory when information changes or needs correction.
+
+## When to Use
+- Same fact changes ('User now prefers light mode instead of dark')
+- More precise info becomes available ('Project uses PostgreSQL 16, not 15')
+- User corrects previous information
+- Correcting errors in stored facts
+
+## Post-Response Correction Pattern
+After responding, if user provides CORRECTIONS or UPDATED information:
+1. Search for existing memory on the topic
+2. If found → UPDATE the existing memory
+3. If not found → ADD new memory (don't force update on genuinely new topics)
+
+## Storage Decision
+- ADD NEW for genuinely new topics
+- UPDATE existing when same fact changes
+- If unsure, prefer ADD - storing multiple perspectives is safer than losing context
+
+The text field replaces content entirely; metadata (runId) preserves linkage.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -79,7 +146,24 @@ def create_server() -> Server:
             ),
             Tool(
                 name="delete_memory",
-                description="Remove a specific memory when it is no longer relevant, was stored in error, or user requests deletion. CLEANUP: When updating and old version is redundant, when something shouldn't have been stored, when user asks to forget something. PRIVACY: Honor all deletion requests promptly.",
+                description="""Remove a specific memory when it is no longer relevant, was stored in error, or user requests deletion.
+
+## When to Use
+- User requests deletion ('Forget what I said about X')
+- Old version redundant after update
+- Something stored by mistake
+- User explicitly asks to 'forget' or 'delete' specific information
+
+## Privacy
+Honor all deletion requests promptly. User privacy is paramount.
+
+## Cleanup Pattern
+After post-response storage evaluation, if a memory is found to be:
+- Redundant with newly updated version
+- Incorrectly stored
+- No longer relevant
+
+→ Delete the old/incorrect memory to maintain clean memory store.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -90,7 +174,25 @@ def create_server() -> Server:
             ),
             Tool(
                 name="delete_all_memories",
-                description="""Bulk delete all memories for a user, optionally filtered to a specific session. USE CASES: When user starts fresh on a project, complete privacy wipe requested, abandoned/debug session cleanup. CAUTION: Destructive and irreversible. Confirm with user if request seems broad. Without agent_id, deletes ALL user memories. With agent_id, deletes only that session's memories.""",
+                description="""Bulk delete all memories for a user, optionally filtered to a specific session.
+
+## Use Cases
+- User starts fresh on a project ('Clear all my memories')
+- Complete privacy wipe requested
+- Abandoned/debug session cleanup
+- User explicitly requests full memory reset
+
+## Caution
+Destructive and irreversible. Confirm with user if request seems broad.
+
+Without agent_id: deletes ALL user memories
+With agent_id: deletes only that session's memories
+
+## Pre-Deletion Recommendation
+Before bulk delete, consider:
+1. Informing user how many memories will be deleted
+2. Confirming they want to proceed
+3. Suggesting targeted delete if they only want to remove specific memories""",
                 inputSchema={
                     "type": "object",
                     "properties": {
