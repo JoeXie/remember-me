@@ -4,6 +4,33 @@ A dual-mode tool providing long-term memory management for Claude Code and other
 
 Built on Qdrant vector database with semantic search and user/session isolation.
 
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Step 1: Clone the Repository](#step-1-clone-the-repository)
+  - [Step 2: Install Dependencies](#step-2-install-dependencies)
+  - [Step 3: Configure Environment](#step-3-configure-environment)
+  - [Step 4: Start Qdrant](#step-4-start-qdrant)
+  - [Step 5: Verify Installation](#step-5-verify-installation)
+  - [Step 6: Try Your First Command](#step-6-try-your-first-command)
+  - [Troubleshooting](#troubleshooting)
+- [CLI Commands](#cli-commands)
+  - [CLI Options](#cli-options)
+- [Architecture](#architecture)
+- [MCP Server Integration](#mcp-server-integration)
+  - [Method 1: Using claude code command](#method-1-using-claude-code-command)
+  - [Method 2: Manual configuration](#method-2-manual-configuration)
+  - [Available MCP Tools](#available-mcp-tools)
+- [OpenClaw Skill Integration](#openclaw-skill-integration)
+- [Configuration](#configuration)
+  - [Environment Variables](#environment-variables)
+- [Data Format](#data-format)
+- [Project Structure](#project-structure)
+- [Run Tests](#run-tests)
+
 ## Features
 
 - **Dual-Mode**: CLI commands + MCP server integration
