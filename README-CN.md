@@ -84,13 +84,14 @@ pip install -e .
 
 ### 步骤 3: 配置环境变量
 
-复制环境变量示例文件并编辑：
+创建配置目录并复制环境变量示例文件：
 
 ```bash
-cp .env.example .env
+mkdir -p ~/.config/rememberme/
+cp .env.example ~/.config/rememberme/.env
 ```
 
-编辑 `.env` 配置您的凭据：
+编辑 `~/.config/rememberme/.env` 配置您的凭据：
 
 ```bash
 # 必需：嵌入 API 凭据
@@ -158,9 +159,10 @@ rememberme --help
 | 问题 | 解决方案 |
 |------|----------|
 | `QdrantOfflineError` | 确保 Qdrant 正在运行（`docker run -p 6333:6333 qdrant/qdrant`） |
-| `ValidationError` | 检查 `.env` 中的 `EMBEDDING_API_KEY` 和 `OPENAI_BASE_URL` |
+| `ValidationError` | 检查 `~/.config/rememberme/.env` 中的 `EMBEDDING_API_KEY` 和 `OPENAI_BASE_URL` |
 | 命令未找到 | 重新运行 `pip install -e .` 创建 `rememberme` 命令 |
 | 集合错误 | RememberMe 会在首次运行时自动创建集合 |
+| 配置文件未找到 | 确保 `~/.config/rememberme/.env` 存在（会自动创建目录） |
 
 ## CLI 命令
 
@@ -285,11 +287,20 @@ claude mcp add rememberme -- bash -c "cd /path/to/RememberMe && python -m rememb
 
 ## 配置
 
-复制 `.env.example` 为 `.env` 并配置：
+默认从 `~/.config/rememberme/.env` 加载配置。
+
+如果该文件不存在，会自动创建（目录也会自动创建）。
+
+配置步骤：
 
 ```bash
-cp .env.example .env
+mkdir -p ~/.config/rememberme/
+cp .env.example ~/.config/rememberme/.env
 ```
+
+然后编辑 `~/.config/rememberme/.env` 配置您的凭据。
+
+**注意：** 环境变量（例如通过 `~/.claude/settings.json` 中 MCP 的 `env` 配置传入的）会优先于 `.env` 文件。
 
 ### 环境变量
 

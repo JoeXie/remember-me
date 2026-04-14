@@ -84,13 +84,14 @@ This installs RememberMe in development mode and creates the `rememberme` comman
 
 ### Step 3: Configure Environment
 
-Copy the example env file and edit with your credentials:
+Create the config directory and copy the example env file:
 
 ```bash
-cp .env.example .env
+mkdir -p ~/.config/rememberme/
+cp .env.example ~/.config/rememberme/.env
 ```
 
-Edit `.env` with your settings:
+Edit `~/.config/rememberme/.env` with your settings:
 
 ```bash
 # Required: Your embedding API credentials
@@ -158,9 +159,10 @@ rememberme --help
 | Issue | Solution |
 |-------|----------|
 | `QdrantOfflineError` | Ensure Qdrant is running (`docker run -p 6333:6333 qdrant/qdrant`) |
-| `ValidationError` | Check `EMBEDDING_API_KEY` and `OPENAI_BASE_URL` in `.env` |
+| `ValidationError` | Check `EMBEDDING_API_KEY` and `OPENAI_BASE_URL` in `~/.config/rememberme/.env` |
 | Command not found | Re-run `pip install -e .` to create the `rememberme` command |
 | Collection error | RememberMe auto-creates the collection on first run |
+| Config not found | Ensure `~/.config/rememberme/.env` exists (or will be auto-created) |
 
 ## CLI Commands
 
@@ -285,11 +287,20 @@ The skill provides:
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure:
+Configuration is loaded from `~/.config/rememberme/.env` by default.
+
+If this file doesn't exist, it will be created automatically (the directory will be created if needed).
+
+To set up:
 
 ```bash
-cp .env.example .env
+mkdir -p ~/.config/rememberme/
+cp .env.example ~/.config/rememberme/.env
 ```
+
+Then edit `~/.config/rememberme/.env` with your settings.
+
+**Note:** Environment variables (e.g., when running via MCP with `env` in `~/.claude/settings.json`) take precedence over the `.env` file.
 
 ### Environment Variables
 

@@ -2,9 +2,14 @@
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# 默认加载用户配置目录下的 .env 文件
+DEFAULT_ENV_PATH = Path.home() / ".config" / "rememberme" / ".env"
+# 确保配置目录存在
+DEFAULT_ENV_PATH.parent.mkdir(parents=True, exist_ok=True)
+load_dotenv(dotenv_path=str(DEFAULT_ENV_PATH))
 
 
 @dataclass
